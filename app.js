@@ -2,162 +2,161 @@
 const menuToggle = document.getElementById('menuToggle');
 const mainNav = document.getElementById('mainNav');
 const toast = document.getElementById('toast');
+const searchForm = document.getElementById('searchForm');
+const searchInput = document.getElementById('searchInput');
+const suggestForm = document.getElementById('suggestForm');
 
 let toastTimer;
 
 function normalize(text) {
-  return String(text || '')
-    .toLocaleLowerCase('fa')
-    .replace(/[يى]/g, 'ی')
-    .replace(/ك/g, 'ک')
-    .replace(/ۀ/g, 'ه')
-    .replace(/[\u064B-\u065F\u0670]/g, '')
-    .replace(/[\u200c\u200f\u200e]/g, ' ')
-    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+return String(text || '')
+.toLocaleLowerCase('fa')
+.replace(/[يى]/g, 'ی')
+.replace(/ك/g, 'ک')
+.replace(/ۀ/g, 'ه')
+.replace(/[\u064B-\u065F\u0670]/g, '')
+.replace(/[\u200c\u200f\u200e]/g, ' ')
+.replace(/[^\p{L}\p{N}\s]/gu, ' ')
+.replace(/\s+/g, ' ')
+.trim();
 }
 
 function showToast(message) {
-  if (!toast) return;
+if (!toast) return;
 
-  toast.textContent = message;
-  toast.classList.add('show');
+toast.textContent = message;
+toast.classList.add('show');
 
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    toast.classList.remove('show');
-  }, 3200);
+clearTimeout(toastTimer);
+toastTimer = setTimeout(() => {
+toast.classList.remove('show');
+}, 3500);
 }
 
 if (menuToggle && mainNav) {
-  menuToggle.addEventListener('click', () => {
-    const open = mainNav.classList.toggle('open');
-    menuToggle.setAttribute('aria-expanded', String(open));
-  });
+menuToggle.addEventListener('click', () => {
+const isOpen = mainNav.classList.toggle('open');
+menuToggle.setAttribute('aria-expanded', String(isOpen));
+});
 
-  mainNav.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => {
-      mainNav.classList.remove('open');
-      menuToggle.setAttribute('aria-expanded', 'false');
-    });
-  });
+mainNav.querySelectorAll('a').forEach(link => {
+link.addEventListener('click', () => {
+mainNav.classList.remove('open');
+menuToggle.setAttribute('aria-expanded', 'false');
+});
+});
 }
 
-const sections = [
-  {
-    id: 'businesses',
-    title: 'کسب و کارهای داراب',
-    words: 'فروشگاه مغازه کافه رستوران پزشک خدمات بازار شرکت مشاغل'
-  },
-  {
-    id: 'figures',
-    title: 'مفاخر و نویسندگان داراب',
-    words: 'نویسنده شاعر هنرمند شخصیت مشاهیر چهره فرهنگ ادبیات'
-  },
-  {
-    id: 'discover',
-    title: 'گردشگری داراب',
-    words: 'گردشگری جاذبه دیدنی طبیعت سفر آبشار آثار باستانی'
-  },
-  {
-    id: 'history',
-    title: 'تاریخ داراب',
-    words: 'تاریخ گذشته قدیم باستان خاطره عکس آرشیو'
-  },
-  {
-    id: 'neighborhoods',
-    title: 'محله ها و روستاهای داراب',
-    words: 'محله روستا روستایی گویش آداب رسوم فرهنگ'
-  },
-  {
-    id: 'products',
-    title: 'محصولات محلی داراب',
-    words: 'خرما مرکبات پرتقال لیمو کشاورزی محصولات تولید'
-  }
+const searchSections = [
+{
+id: 'businesses',
+words: 'کسب و کار کسب وکار فروشگاه مغازه کافه قهوه رستوران پزشک خدمات بازار شرکت مشاغل خرید'
+},
+{
+id: 'figures',
+words: 'مفاخر نویسنده نویسندگان شاعر شاعران هنرمند شخصیت مشاهیر چهره فرهنگ ادبیات'
+},
+{
+id: 'discover',
+words: 'گردشگری داراب گردی جاذبه دیدنی طبیعت سفر آبشار آثار باستانی'
+},
+{
+id: 'history',
+words: 'تاریخ گذشته قدیم باستان خاطره عکس آرشیو دیروز امروز'
+},
+{
+id: 'neighborhoods',
+words: 'محله محله ها محله‌های روستا روستاها روستایی گویش آداب رسوم فرهنگ'
+},
+{
+id: 'products',
+words: 'محصول محصولات محلی خرما مرکبات پرتقال لیمو کشاورزی تولید'
+},
+{
+id: 'magazine',
+words: 'مجله مقاله مطلب داستان قصه دانشنامه آرشیو'
+},
+{
+id: 'submit',
+words: 'پیشنهاد ثبت معرفی ارسال افزودن'
+}
 ];
 
 function runSearch(query) {
-  const q = normalize(query);
+const q = normalize(query);
 
-  if (!q) {
-    showToast('یک عبارت برای جست‌وجو وارد کن.');
-    return;
-  }
-
-  const terms = q.split(' ').filter(word => word.length > 1);
-  let bestMatch = null;
-  let bestScore = 0;
-
-  sections.forEach(section => {
-    const element = document.getElementById(section.id);
-    if (!element) return;
-
-    const content = normalize(
-      section.title + ' ' +
-      section.words + ' ' +
-      section.id + ' ' +
-      element.innerText
-    );
-
-    let score = 0;
-
-    if (content.includes(q)) score += 10;
-
-    terms.forEach(term => {
-      if (content.includes(term)) score += 2;
-    });
-
-    if (score > bestScore) {
-      bestScore = score;
-      bestMatch = element;
-    }
-  });
-
-  if (bestMatch && bestScore > 0) {
-    bestMatch.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start'
-    });
-
-    showToast('بخش مرتبط پیدا شد. برای نتیجه دقیق‌تر، نام یا عبارت کامل را وارد کن.');
-  } else {
-    showToast('موردی در بخش‌های فعلی پیدا نشد. عبارت دیگری امتحان کن.');
-  }
+if (!q) {
+showToast('یک عبارت برای جست‌وجو وارد کن.');
+return;
 }
 
-const searchForm = document.getElementById('searchForm');
-const searchInput = document.getElementById('searchInput');
+const terms = q.split(' ').filter(term => term.length > 1);
+let bestElement = null;
+let bestScore = 0;
+
+for (const section of searchSections) {
+const element = document.getElementById(section.id);
+if (!element) continue;
+
+const content = normalize(
+  section.words + ' ' +
+  section.id.replace(/([A-Z])/g, ' $1') + ' ' +
+  element.innerText
+);
+
+let score = 0;
+
+if (content.includes(q)) score += 10;
+
+for (const term of terms) {
+  if (content.includes(term)) score += 2;
+}
+
+if (score > bestScore) {
+  bestScore = score;
+  bestElement = element;
+}
+
+}
+
+if (bestElement && bestScore > 0) {
+bestElement.scrollIntoView({
+behavior: 'smooth',
+block: 'start'
+});
+
+showToast('بخش مرتبط پیدا شد؛ مطالب این بخش را ببین.');
+
+} else {
+showToast('در محتوای فعلی نتیجه‌ای پیدا نشد. عبارت دیگری امتحان کن.');
+}
+}
 
 if (searchForm && searchInput) {
-  searchForm.addEventListener('submit', event => {
-    event.preventDefault();
-    runSearch(searchInput.value);
-  });
+searchForm.addEventListener('submit', event => {
+event.preventDefault();
+runSearch(searchInput.value);
+});
 }
 
 document.querySelectorAll('[data-search]').forEach(button => {
-  button.addEventListener('click', () => {
-    runSearch(button.dataset.search);
-  });
+button.addEventListener('click', () => {
+runSearch(button.dataset.search);
+});
 });
 
-const suggestForm = document.getElementById('suggestForm');
-
 if (suggestForm) {
-  suggestForm.addEventListener('submit', event => {
-    event.preventDefault();
+suggestForm.addEventListener('submit', event => {
+event.preventDefault();
 
-    const name = document
-      .getElementById('suggestName')?.value.trim();
+const name = document.getElementById('suggestName')?.value.trim();
 
-    if (!name) {
-      showToast('لطفاً عنوان پیشنهاد را وارد کن.');
-      return;
-    }
+if (!name) {
+  showToast('لطفاً نام یا عنوان پیشنهاد را وارد کن.');
+  return;
+}
 
-    showToast(
-      'این پیشنهاد هنوز ارسال نشده است؛ فرم برای ثبت واقعی به سرویس ذخیره‌سازی نیاز دارد.'
-    );
-  });
+showToast('این پیشنهاد هنوز ذخیره یا ارسال نشده است؛ اتصال سرور لازم است.');
+
+});
 }
